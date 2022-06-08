@@ -1,7 +1,5 @@
-from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from .serializers import MainTaskSerializer, SubTaskSerializer
 from ..models import MainTask, SubTask
 
@@ -10,8 +8,6 @@ class MainTaskListCreateView(ListCreateAPIView):
     queryset = MainTask.objects.all()
     serializer_class = MainTaskSerializer
     pagination_class = PageNumberPagination
-    authentication_classes = (SessionAuthentication, TokenAuthentication,)
-    permission_classes = (IsAdminUser, IsAuthenticated,)
 
 
 class MainTaskRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
@@ -19,16 +15,12 @@ class MainTaskRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
     serializer_class = MainTaskSerializer
     lookup_field = 'slug'
     pagination_class = PageNumberPagination
-    authentication_classes = (SessionAuthentication, TokenAuthentication,)
-    permission_classes = (IsAdminUser, IsAuthenticated,)
 
 
 class SubTaskListCreateView(ListCreateAPIView):
     queryset = SubTask.objects.select_related('maintask').all()
     serializer_class = SubTaskSerializer
     pagination_class = PageNumberPagination
-    authentication_classes = (SessionAuthentication, TokenAuthentication,)
-    permission_classes = (IsAdminUser, IsAuthenticated,)
 
 
 class SubTaskRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
@@ -36,5 +28,3 @@ class SubTaskRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
     serializer_class = SubTaskSerializer
     lookup_field = 'slug'
     pagination_class = PageNumberPagination
-    authentication_classes = (SessionAuthentication, TokenAuthentication,)
-    permission_classes = (IsAdminUser, IsAuthenticated,)
