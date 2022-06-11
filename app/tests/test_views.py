@@ -29,15 +29,6 @@ class MainTaskTest(TestCaseBase):
     url_verification = reverse('token_obtain_pair')
     url_maintasks = reverse('maintask-list')
 
-    def setUp(self):
-        self.email = 'johndoe@email.com'
-        self.password = 'johndoepassword'
-        self.data = {
-            'email': self.email,
-            'password': self.password
-        }
-        USER.objects.create_user(email=self.email, password=self.password)
-
     def test_auth_user(self):
         response = self.client.post(self.url_verification, self.data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
