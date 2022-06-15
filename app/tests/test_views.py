@@ -36,7 +36,7 @@ class UserAuthTest(TestCaseBase):
         self.assertTrue('refresh' in response.data)
 
 
-class MainTaskTest(TestCaseBase):
+class MaintaskListTest(TestCaseBase):
     url = reverse('maintask-list')
 
     def test_get_obj(self):
@@ -67,7 +67,7 @@ class MainTaskTest(TestCaseBase):
         self.assertNotEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
-class SubTaskTest(TestCaseBase):
+class SubtaskListTest(TestCaseBase):
     url = reverse('subtask-list')
 
     def test_get_obj(self):
