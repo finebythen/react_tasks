@@ -24,7 +24,7 @@ class TestCaseBase(APITestCase):
         USER.objects.create_user(email=self.email, password=self.password)
         self.user = USER.objects.get(email='johndoe@email.com')
 
-        MainTask.objects.create(
+        self.maintask = MainTask.objects.create(
             id=1,
             active=True,
             slug='maintask-42',
@@ -32,6 +32,17 @@ class TestCaseBase(APITestCase):
             created_at=timezone.now(),
             updated_at=timezone.now(),
             title='Maintask #42'
+        )
+
+        self.subtask = SubTask.objects.create(
+            id=1,
+            active=True,
+            slug='subtask-42',
+            created_by=self.user,
+            created_at=timezone.now(),
+            updated_at=timezone.now(),
+            maintask=self.maintask,
+            title='Subtask #42'
         )
 
     @property
@@ -105,76 +116,56 @@ class MaintaskDetailTest(TestCaseBase):
         self.assertNotEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
-# class SubtaskListTest(TestCaseBase):
-#     url = reverse('subtask-list')
+class SubtaskListTest(TestCaseBase):
+    url = reverse('subtask-list')
 
-#     def test_get_obj(self):
-#         self.client.credentials(**self.jwt_token)
+    def test_get_obj(self):
+        self.client.credentials(**self.jwt_token)
 
-#         response = self.client.get(self.url, format='json')
-#         self.assertEqual(response.status_code, status.HTTP_200_OK)
-#         self.assertNotEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-#         self.assertNotEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        response = self.client.get(self.url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertNotEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertNotEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-#     def test_create_obj(self):
-#         self.client.credentials(**self.jwt_token)
-#         user = USER.objects.get(email='johndoe@email.com')
+    def test_create_obj(self):
+        self.client.credentials(**self.jwt_token)
 
-#         maintask = MainTask.objects.create(
-#             id=2,
-#             active=True,
-#             slug='maintask-111',
-#             created_by=user,
-#             created_at=timezone.now(),
-#             updated_at=timezone.now(),
-#             title='Maintask #111'
-#         )
+        data = {
+            'id': 1,
+            'active': True,
+            'slug': 'subtask-001',
+            'created_by': self.user.id,
+            'created_at': timezone.now(),
+            'updated_at': timezone.now(),
+            'maintask': self.maintask.id,
+            'title': 'Subtask #001'
+        }
 
-#         data = {
-#             'id': 1,
-#             'active': True,
-#             'slug': 'subtask-001',
-#             'created_by': user.id,
-#             'created_at': timezone.now(),
-#             'updated_at': timezone.now(),
-#             'maintask': maintask.id,
-#             'title': 'Subtask #001'
-#         }
-
-#         response = self.client.post(self.url, data, format='json')
-#         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-#         self.assertNotEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-#         self.assertNotEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        response = self.client.post(self.url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertNotEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertNotEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
-# class SubtaskDetailTest(TestCaseBase):
-#     url = reverse('subtask-detail', args=['subtask-242'])
+class SubtaskDetailTest(TestCaseBase):
+    url = reverse('subtask-detail', args=['subtask-42'])
 
-#     def test_obj_get(self):
-#         self.client.credentials(**self.jwt_token)
-#         user = USER.objects.get(email='johndoe@email.com')        
-        
-#         maintask = MainTask.objects.create(
-#             id=5,
-#             active=True,
-#             slug='maintask-888',
-#             created_by=user,
-#             created_at=timezone.now(),
-#             updated_at=timezone.now(),
-#             title='Maintask #888'
-#         )
+    def test_obj_get(self):
+        self.client.credentials(**self.jwt_token)
+        response = self.client.get(self.url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(SubTask.objects.count(), 1)
+    
+    def test_obj_patch(self):
+        self.client.credentials(**self.jwt_token)
+        response = self.client.patch(self.url, kwargs={'active': False}, format='json')
+        response_data = json.loads(response.content)
+        task = SubTask.objects.get(slug='subtask-42')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response_data.get('active'), task.active)
 
-#         SubTask.objects.create(
-#             id=6,
-#             active=True,
-#             slug='subtask-242',
-#             created_by=user,
-#             created_at=timezone.now(),
-#             updated_at=timezone.now(),
-#             maintask=maintask,
-#             title='Subtask #242',            
-#         )
-
-#         response = self.client.get(self.url, format='json')
-#         self.assertEqual(response.status_code, status.HTTP_200_OK)
-#         self.assertEqual(SubTask.objects.count(), 1)
+    def test_obj_delete(self):
+        self.client.credentials(**self.jwt_token)
+        response = self.client.delete(self.url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertNotEqual(response.status_code, status.HTTP_404_NOT_FOUND)
